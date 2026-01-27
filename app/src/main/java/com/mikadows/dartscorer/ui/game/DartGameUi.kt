@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -372,31 +374,36 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawSectorNumbers(
     sectorAngle: Float,
     startAngleOffset: Float,
 ) {
-    // On place les numéros légèrement en dehors de l'anneau double
     val numberRadius = radius * 1.02f
 
-    for (i in 0 until 20) {
-        val sectorNumber = SECTOR_ORDER[i]
+    val paint = android.graphics.Paint().apply {
+        color = android.graphics.Color.WHITE
+        textAlign = android.graphics.Paint.Align.CENTER
+        textSize = radius * 0.08f
+        isAntiAlias = true
+        typeface = android.graphics.Typeface.DEFAULT_BOLD
+    }
 
-        // Angle au centre du secteur i (même logique que pour les arcs)
-        val angleDeg = startAngleOffset + i * sectorAngle + sectorAngle / 2f
-        val angleRad = Math.toRadians(angleDeg.toDouble())
-        val x = center.x + numberRadius * kotlin.math.cos(angleRad).toFloat()
-        val y = center.y + numberRadius * kotlin.math.sin(angleRad).toFloat()
+    drawIntoCanvas { canvas ->
+        for (i in 0 until 20) {
+            val sectorNumber = SECTOR_ORDER[i]
 
-        // Dessine un petit label centré autour du point (x,y).
-        // Comme on est dans DrawScope de Canvas, on simplifie :
-        // on dessine un petit cercle de fond + on laisse le texte aux composables parent
-        // -> ici, on dessine uniquement de petits repères pour garder la compatibilité.
+            val angleDeg = startAngleOffset + i * sectorAngle + sectorAngle / 2f
+            val angleRad = Math.toRadians(angleDeg.toDouble())
+            val x = center.x + numberRadius * kotlin.math.cos(angleRad).toFloat()
+            val y = center.y + numberRadius * kotlin.math.sin(angleRad).toFloat()
 
-        drawCircle(
-            color = Color(0x55FFFFFF),
-            radius = radius * 0.04f,
-            center = Offset(x, y),
-        )
-        // NOTE : pour un rendu parfait avec texte, il serait préférable de superposer
-        // un composable Text sur un deuxième calque Compose plutôt que d'essayer de
-        // "peindre" du texte depuis DrawScope.
+            val fm = paint.fontMetrics
+            val textHeight = fm.bottom - fm.top
+            val textY = y + textHeight / 2f - fm.bottom
+
+            canvas.nativeCanvas.drawText(
+                sectorNumber.toString(),
+                x,
+                textY,
+                paint,
+            )
+        }
     }
 }
 
