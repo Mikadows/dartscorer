@@ -227,30 +227,40 @@ fun TargetInput(
 ) {
     BoxWithConstraints(modifier = modifier) {
         val geometry = remember { DartboardGeometry.Default }
-        val maxSize = this.maxWidth.coerceAtMost(this.maxHeight)
+        // Taille maximale autorisée dans le layout (carré)
+        val availableSize = this.maxWidth.coerceAtMost(this.maxHeight)
+        // Réduction globale de la cible (par ex. 85% de la zone disponible)
+        val boardSize = availableSize * 0.85f
+
         val density = LocalDensity.current
-        val radiusPx = with(density) { maxSize.toPx() } / 2f
+        val radiusPx = with(density) { boardSize.toPx() } / 2f
         val centerX = radiusPx
         val centerY = radiusPx
 
-        Canvas(
+        Box(
             modifier = Modifier
-                .size(maxSize)
-                .pointerInput(Unit) {
-                    detectTapGestures { offset ->
-                        val score = DartboardMapper.mapTouchToScore(
-                            x = offset.x,
-                            y = offset.y,
-                            centerX = centerX,
-                            centerY = centerY,
-                            boardRadius = radiusPx,
-                        )
-                        onHit(score)
-                    }
-                },
+                .size(availableSize),
+            contentAlignment = Alignment.Center,
         ) {
-            // Dessin du dartboard directement dans ce Canvas
-            drawDartboard(geometry)
+            Canvas(
+                modifier = Modifier
+                    .size(boardSize)
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            // offset est dans le repère du Canvas (boardSize)
+                            val score = DartboardMapper.mapTouchToScore(
+                                x = offset.x,
+                                y = offset.y,
+                                centerX = centerX,
+                                centerY = centerY,
+                                boardRadius = radiusPx,
+                            )
+                            onHit(score)
+                        }
+                    },
+            ) {
+                drawDartboard(geometry)
+            }
         }
     }
 }
