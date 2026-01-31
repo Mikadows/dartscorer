@@ -1,8 +1,13 @@
 import React from 'react';
-import { GameProvider } from './context/GameProvider';
+import { GameProvider, useGame } from './context/GameProvider';
 import Dartboard from './components/organisms/Dartboard';
 import ScorePanel from './components/organisms/ScorePanel';
 import './app.css';
+
+function BoardContainer() {
+  const { addThrow } = useGame();
+  return <Dartboard onHit={addThrow} />;
+}
 
 export default function App() {
   return (
@@ -12,7 +17,7 @@ export default function App() {
           <ScorePanel />
         </div>
         <div className="ds-right">
-          <Dartboard onHit={() => {}} />
+          <BoardContainer />
         </div>
       </div>
     </GameProvider>
