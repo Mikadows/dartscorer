@@ -59,7 +59,8 @@ export default function Dartboard({ onHit }) {
               const tripleOuterR = 0.5688 * R; // ~284
               const doubleInnerR = 0.92 * R; // 460
               const doubleOuterR = 0.99 * R; // 495
-              const numbersR = 480;
+              // Position numbers just outside the double ring
+              const numbersR = doubleOuterR + 18; // small gap outside double ring
               const sectorAngle = 360 / 20;
 
               function degToRad(d) {
@@ -135,15 +136,15 @@ export default function Dartboard({ onHit }) {
                   />
                 );
 
-                // numbers
+                // numbers (positioned just outside the double ring)
                 const numPos = polar(center, numbersR);
                 sectors.push(
                   <text
                     key={`n-${i}`}
                     x={numPos.x}
-                    y={numPos.y + 12}
+                    y={numPos.y + 8}
                     textAnchor="middle"
-                    fontSize="36"
+                    fontSize="30"
                     fill="#f7f7f7"
                     transform={`rotate(${center} ${numPos.x} ${numPos.y})`}
                     className="sector-number"
