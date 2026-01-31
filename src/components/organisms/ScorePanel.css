@@ -6,6 +6,7 @@
 .active-area{margin-top:1rem}
 .history{margin-top:1rem;overflow-y:auto;overflow-x:hidden}
 .turn-card{background:linear-gradient(180deg,#0f0f0f,#080808);padding:0.6rem;border-radius:8px;margin-bottom:0.6rem;border:1px solid rgba(255,255,255,0.03)}
+.turn-card.active{box-shadow:0 0 0 4px rgba(46,204,113,0.06);border-color:rgba(46,204,113,0.18);background:linear-gradient(180deg,#0f2416,#07160b)}
 .turn-top{display:flex;align-items:center;justify-content:space-between}
 .player-info{display:flex;align-items:center;gap:0.6rem}
 .avatar{width:36px;height:36px;border-radius:50%;background:#222;display:flex;align-items:center;justify-content:center;font-weight:700}

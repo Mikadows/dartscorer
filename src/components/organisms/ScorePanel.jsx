@@ -3,11 +3,11 @@ import { useGame } from '../../context/GameProvider';
 import Button from '../atoms/Button';
 import './ScorePanel.css';
 
-function TurnCard({ turn, player, remaining }) {
+function TurnCard({ turn, player, remaining, isActive = false }) {
   const slots = Array.from({ length: 3 }).map((_, i) => turn && turn.throws[i] ? turn.throws[i].shorthand : '');
   const subtotal = turn ? turn.throws.reduce((s, t) => s + (t.score || 0), 0) : 0;
   return (
-    <div className="turn-card">
+    <div className={`turn-card ${isActive ? 'active' : ''}`}>
       <div className="turn-top">
         <div className="player-info">
           <div className="avatar">{player.name[0]}</div>
@@ -62,7 +62,7 @@ export default function ScorePanel() {
 
       <div className="active-area">
         <h3>Active Player</h3>
-        <TurnCard turn={currentTurn} player={activePlayer} remaining={getPlayerScoreRemaining(activePlayer.id)} />
+        <TurnCard isActive turn={currentTurn} player={activePlayer} remaining={getPlayerScoreRemaining(activePlayer.id)} />
       </div>
 
       <div className="history">
