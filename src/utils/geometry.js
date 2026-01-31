@@ -1,0 +1,79 @@
+export const SECTOR_ORDER = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+
+export function getHitFromPoint(dx, dy, R) {
+  // dx, dy: coordinates centered at board center (positive right/down)
+  const r = Math.sqrt(dx * dx + dy * dy);
+  const angle = Math.atan2(dy, dx); // radians, 0 at +X, clockwise positive Y
+
+  // Rings (fractions of R)
+  const innerBullR = 0.06 * R;
+  const outerBullR = 0.12 * R;
+  const tripleInnerR = 0.52 * R;
+  const tripleOuterR = 0.56 * R;
+  const doubleInnerR = 0.92 * R;
+  const doubleOuterR = 0.99 * R;
+
+  // Determine ring
+  let ringType = 'miss';
+  if (r <= innerBullR) ringType = 'innerBull';
+  else if (r <= outerBullR) ringType = 'outerBull';
+  else if (r >= doubleInnerR && r <= doubleOuterR) ringType = 'double';
+  else if (r >= tripleInnerR && r <= tripleOuterR) ringType = 'triple';
+  else if (r < doubleOuterR) ringType = 'single';
+  else ringType = 'miss';
+
+  // Map angle to sector index. We want sector 20 centered at -90deg (top).
+  const twoPi = Math.PI * 2;
+  const normalized = (angle + Math.PI / 2 + twoPi) % twoPi; // zero at top
+  const sectorAngle = twoPi / 20;
+  const sectorIndex = Math.floor(normalized / sectorAngle) % 20;
+  const sectorValue = SECTOR_ORDER[sectorIndex];
+
+  // Shorthand and score
+  let score = 0;
+  let shorthand = '';
+  if (ringType === 'innerBull') {
+    score = 50;
+    shorthand = 'B';
+  } else if (ringType === 'outerBull') {
+    score = 25;
+    shorthand = 'OB';
+  } else if (ringType === 'double') {
+    score = sectorValue * 2;
+    shorthand = `D${sectorValue}`;
+  } else if (ringType === 'triple') {
+    score = sectorValue * 3;
+    shorthand = `T${sectorValue}`;
+  } else if (ringType === 'single') {
+    score = sectorValue;
+    shorthand = `${sectorValue}`;
+  } else {
+    // outside board
+    score = 0;
+    shorthand = '—';
+  }
+
+  // visual color hints
+  const singleColors = ['#f5f5f5', '#7b0f0f'];
+  const color =
+    ringType === 'innerBull'
+      ? '#c0392b'
+      : ringType === 'outerBull'
+      ? '#27ae60'
+      : ringType === 'double' || ringType === 'triple'
+      ? sectorIndex % 2 === 0
+        ? '#27ae60'
+        : '#c0392b'
+      : singleColors[sectorIndex % 2];
+
+  return {
+    ringType,
+    sectorValue,
+    score,
+    shorthand,
+    color,
+    sectorIndex,
+    r,
+    angle,
+  };
+}

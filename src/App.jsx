@@ -1,10 +1,20 @@
 import React from 'react';
+import { GameProvider } from './context/GameProvider';
+import Dartboard from './components/organisms/Dartboard';
+import ScorePanel from './components/organisms/ScorePanel';
+import './app.css';
 
 export default function App() {
   return (
-    <div className="app">
-      <h1>Dart Scorer</h1>
-      <p>React 19 starter with Prettier.</p>
-    </div>
+    <GameProvider>
+      <div className="ds-root">
+        <div className="ds-left">
+          <ScorePanel />
+        </div>
+        <div className="ds-right">
+          <Dartboard onHit={() => {}} />
+        </div>
+      </div>
+    </GameProvider>
   );
 }

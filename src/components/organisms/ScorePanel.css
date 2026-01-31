@@ -1,0 +1,10 @@
+.score-panel{width:100%;height:100%;padding:1rem;color:#eee;display:flex;flex-direction:column;background:linear-gradient(180deg,#111,#070707)}
+.score-header{display:flex;align-items:center;justify-content:space-between}
+.score-header h2{margin:0;font-size:1.25rem}
+.controls{display:flex;gap:0.5rem}
+.ds-btn{background:#222;border:1px solid #333;color:#fff;padding:0.4rem 0.6rem;border-radius:6px}
+.throws-list{margin-top:1rem;overflow:auto}
+.throw-row{display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.25rem;border-bottom:1px solid rgba(255,255,255,0.02)}
+.shorthand{font-weight:700;width:3rem}
+.meta{font-size:0.85rem;color:#aaa}
+.empty{color:#888}
