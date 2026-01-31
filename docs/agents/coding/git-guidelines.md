@@ -90,6 +90,13 @@ Breaking changes **MUST** be indicated by:
 - Types other than `feat` and `fix` are allowed but have no implicit SemVer effect unless they include a breaking change.
 - Use `revert:` for revert commits, referencing the original commit SHAs in the footer.
 
+### Explicit Commit Approval
+
+- You **MUST NEVER** run `git commit`, `git push`, or otherwise create commits in the repository unless the human user explicitly instructs you to do so.
+- When making changes, prepare diffs or patches and present them to the user for review; do not stage or commit automatically.
+- If asked to produce a commit message, provide a suggested Conventional Commit message, but wait for the user's explicit approval before executing the commit.
+- For multi-step workflows (tests, formatting, validation), show the results and ask for permission before committing any generated changes.
+
 ## Branching Strategy
 
 - Use feature branches for new work: `feature/<feature-name>`.
