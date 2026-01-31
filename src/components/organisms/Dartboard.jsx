@@ -52,10 +52,11 @@ export default function Dartboard({ onHit }) {
               const R = 500;
               const innerBullR = 0.06 * R; // 30
               const outerBullR = 0.12 * R; // 60
-              // Increase triple ring thickness by 20% while keeping center around 0.54*R
-              // New inner/outer: 0.516*R .. 0.564*R
-              const tripleInnerR = 0.516 * R; // 258
-              const tripleOuterR = 0.564 * R; // 282
+              // Previously increased triple ring thickness by 20%.
+              // Now increase it by another 20% (relative to prior change).
+              // New inner/outer: 0.5112*R .. 0.5688*R
+              const tripleInnerR = 0.5112 * R; // ~256
+              const tripleOuterR = 0.5688 * R; // ~284
               const doubleInnerR = 0.92 * R; // 460
               const doubleOuterR = 0.99 * R; // 495
               const numbersR = 480;
