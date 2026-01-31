@@ -36,10 +36,12 @@ export default function ScorePanel() {
   const { players, currentPlayerIndex, currentTurn, turns, undo, redo, clear, getPlayerScoreRemaining } = useGame();
   const { winner, continueAfterWin, resetGame } = useGame();
 
+
   const activePlayer = players[currentPlayerIndex];
 
   return (
     <aside className="score-panel">
+      
       {winner && (
         <div className="winner-modal" role="dialog" aria-modal="true">
           <div className="winner-card">

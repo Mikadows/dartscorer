@@ -2,6 +2,7 @@ import React from 'react';
 import { GameProvider, useGame } from './context/GameProvider';
 import Dartboard from './components/organisms/Dartboard';
 import ScorePanel from './components/organisms/ScorePanel';
+import NextOverlay from './components/organisms/NextOverlay';
 import './app.css';
 
 function BoardContainer() {
@@ -17,7 +18,10 @@ export default function App() {
           <ScorePanel />
         </div>
         <div className="ds-right">
-          <BoardContainer />
+          <div style={{position:'relative',width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <NextOverlay />
+            <BoardContainer />
+          </div>
         </div>
       </div>
     </GameProvider>
