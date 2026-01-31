@@ -131,7 +131,7 @@ export default function Home({ onStart }){
         </div>
 
         <footer className="home-footer">
-          <a href="#" target="_blank" rel="noreferrer">GitHub repository</a>
+          <a href="https://github.com/Mikadows/dartscorer" target="_blank" rel="noreferrer">GitHub repository</a>
         </footer>
 
       </div>
