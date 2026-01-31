@@ -26,9 +26,8 @@
 .slot.filled{background:#262626}
 .empty{color:#888}
 
-/* Winner modal */
-.winner-modal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.6));z-index:40}
-.winner-card{background:#121212;border:1px solid rgba(255,255,255,0.04);padding:1rem;border-radius:8px;min-width:260px}
+.winner-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.7));z-index:1200;pointer-events:auto}
+.winner-card{background:#121212;border:1px solid rgba(255,255,255,0.04);padding:1rem;border-radius:8px;min-width:260px;box-shadow:0 12px 40px rgba(2,6,23,0.45)}
 .winner-title{font-weight:800;margin-bottom:0.75rem}
 .winner-actions{display:flex;gap:0.5rem;justify-content:flex-end}
 
