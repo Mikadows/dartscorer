@@ -56,3 +56,50 @@ Welcome to the Dart Scorer project! This document outlines the key features and 
     5. When a new turn is created or updated, the list scrolls to show that card (unless the user is actively viewing older history).  
     6. The app exposes an auto-scroll toggle; it is enabled by default and can be turned off by the user.
 
+## Home / Game Setup (Landing Page)
+
+This new landing page is the primary place to configure a game before starting the match. It must be accessible from the root route (`/`) and provide the following capabilities in a compact, mobile-first layout:
+
+- Target score selection:
+    - User can select a standard starting score: `501` or `301`, or enter a custom integer target.
+    - The selection persists only for the upcoming game (no global account persistence required).
+
+- Player profile management (lightweight):
+    - Create a player profile containing only a display `name` (required) and an optional color/avatar placeholder (optional future enhancement).
+    - Profiles are stored in-memory for the current session and may be reused across games during the browsing session.
+
+- Player roster for next game:
+    - Add one or more player profiles to the roster for the next game.
+    - Remove a player from the roster before starting.
+    - Reorder players to set the throwing order (drag & drop or move-up/move-down controls). The first player in the list starts the game.
+
+- Start game action:
+    - `Start Game` creates a new game using the selected target score and the current roster in the chosen order, navigates to the game board page (`/game`), and initializes `GameProvider` state (players, starting scores, currentPlayerIndex = 0, cleared history).
+
+- Constraints and validation:
+    - At least one player must be in the roster to enable `Start Game`.
+    - Player names must be non-empty and unique within the roster (trimmed comparison); show inline validation errors.
+
+### UI / UX details for Home page
+
+- The home page follows the app's dark theme but uses a clear, lightly elevated card for the configuration area to improve contrast and readability.
+- The roster list displays player `name` and an optional avatar placeholder; each roster item has visible move-up / move-down buttons and a remove icon.
+- The add-player control is an inline form (name input + Add button) with keyboard accessibility (Enter adds the player).
+- Reordering should provide visible affordance (drag handle or arrows) and preserve focus/selection during updates.
+
+### Acceptance criteria (testable)
+
+1. The home page is reachable at `/` and displays the starting score selector, player creation form, roster list, and `Start Game` button.
+2. Adding a player with an empty name is rejected with an inline error; duplicate names are rejected.
+3. Reordering the roster changes the order used when starting the game; verify by starting a game and checking the first `Active Player` on the board.
+4. Removing a player from the roster removes them from the upcoming game and the roster UI updates immediately.
+5. `Start Game` is disabled until the roster contains at least one valid player and a target score is selected.
+6. Starting the game navigates to `/game` and initializes the `GameProvider` with players in the chosen order and the selected starting score.
+
+### Implementation notes (developer)
+
+- Implement a new page component `src/pages/Home.jsx` and route it at `/` (update router or `App.jsx` as appropriate).
+- Use local React state (or a small session store) to manage profile creation and the roster UI; when `Start Game` is pressed, call a `GameProvider` initializer or dispatch to set players and starting scores.
+- Keep the UI accessible and keyboard-friendly; prefer semantic form elements.
+
+

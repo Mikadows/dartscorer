@@ -149,6 +149,22 @@ export function GameProvider({ children }) {
     setGameOver(false);
   }, []);
 
+  const startGame = useCallback(({ roster = [], startingScore = 501 }) => {
+    // roster: array of { id?, name }
+    const normalized = roster.map((p, idx) => ({
+      id: p.id || `pl_${Date.now()}_${idx}`,
+      name: p.name,
+      startingScore: startingScore,
+      inGame: true,
+    }));
+    setPlayers(normalized);
+    setTurns([]);
+    setCurrentTurn(null);
+    setUndone([]);
+    setCurrentPlayerIndex(0);
+    setGameOver(false);
+  }, []);
+
   const closeGameOver = useCallback(() => {
     setGameOver(false);
   }, []);
@@ -178,10 +194,12 @@ export function GameProvider({ children }) {
     redo,
     clear,
     resetGame,
+    startGame,
     gameOver,
     closeGameOver,
     getPlayerScoreRemaining,
   };
+
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

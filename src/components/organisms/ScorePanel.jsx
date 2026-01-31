@@ -32,7 +32,7 @@ function TurnCard({ turn, player, remaining, isActive = false }) {
   );
 }
 
-export default function ScorePanel() {
+export default function ScorePanel({ onNavigateHome }) {
   const { players, currentPlayerIndex, currentTurn, turns, undo, getPlayerScoreRemaining, resetGame, gameOver, closeGameOver } = useGame();
 
 
@@ -47,7 +47,7 @@ export default function ScorePanel() {
           <div className="winner-card game-over-card">
             <div className="winner-title">Game over — no active players remain</div>
             <div className="winner-actions">
-              <Button onClick={() => { resetGame(); }} title="Restart">Restart</Button>
+              <Button onClick={() => { resetGame(); if (onNavigateHome) onNavigateHome(); }} title="Restart">Restart</Button>
             </div>
           </div>
         </div>
