@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { getHitFromPoint } from '../../utils/geometry';
+import { getHitFromPoint, SECTOR_ORDER } from '../../utils/geometry';
 import './Dartboard.css';
 
 export default function Dartboard({ onHit }) {
@@ -19,10 +19,12 @@ export default function Dartboard({ onHit }) {
     const R = Math.min(rect.width, rect.height) / 2;
 
     const hit = getHitFromPoint(dx, dy, R);
-    setMarkers((m) => [...m, { x: (dx + cx) / rect.width * 100, y: (dy + cy) / rect.height * 100, id: Date.now(), shorthand: hit.shorthand, color: hit.color }]);
+    // store marker in SVG coordinates (centered at 500,500)
+    const vx = 500 + (dx / R) * 500;
+    const vy = 500 + (dy / R) * 500;
+    setMarkers((m) => [...m, { x: vx, y: vy, id: Date.now(), shorthand: hit.shorthand, color: hit.color }]);
     if (onHit) onHit(hit);
   }
-
   return (
     <div className="dartboard-wrapper">
       <svg
@@ -34,7 +36,7 @@ export default function Dartboard({ onHit }) {
       >
         <defs>
           <radialGradient id="boardGrad" cx="50%" cy="50%">
-            <stop offset="0%" stopColor="#222" />
+            <stop offset="0%" stopColor="#1b1b1b" />
             <stop offset="100%" stopColor="#000" />
           </radialGradient>
         </defs>
@@ -43,31 +45,131 @@ export default function Dartboard({ onHit }) {
           {/* Outer background */}
           <circle r="500" fill="url(#boardGrad)" />
 
-          {/* Double ring */}
-          <circle r="485" fill="none" stroke="#222" strokeWidth="30" />
+          {/* Board geometry (radii based on 500) */}
+          {/** radii scaled to SVG coordinate space **/}
+          {
+            (() => {
+              const R = 500;
+              const innerBullR = 0.06 * R; // 30
+              const outerBullR = 0.12 * R; // 60
+              const tripleInnerR = 0.52 * R; // 260
+              const tripleOuterR = 0.56 * R; // 280
+              const doubleInnerR = 0.92 * R; // 460
+              const doubleOuterR = 0.99 * R; // 495
+              const numbersR = 480;
+              const sectorAngle = 360 / 20;
 
-          {/* Numbers ring (thin) */}
-          <circle r="430" fill="none" stroke="#111" strokeWidth="140" />
+              function degToRad(d) {
+                return (d * Math.PI) / 180;
+              }
 
-          {/* Triple ring */}
-          <circle r="280" fill="none" stroke="#222" strokeWidth="60" />
+              function polar(angleDeg, radius) {
+                const a = degToRad(angleDeg);
+                return { x: Math.cos(a) * radius, y: Math.sin(a) * radius };
+              }
 
-          {/* Single area is left as background; we'll approximate with alternating sectors visually omitted for brevity */}
+              function sectorPath(rInner, rOuter, startDeg, endDeg) {
+                const a1 = degToRad(startDeg);
+                const a2 = degToRad(endDeg);
+                const x1 = Math.cos(a1) * rOuter;
+                const y1 = Math.sin(a1) * rOuter;
+                const x2 = Math.cos(a2) * rOuter;
+                const y2 = Math.sin(a2) * rOuter;
+                const x3 = Math.cos(a2) * rInner;
+                const y3 = Math.sin(a2) * rInner;
+                const x4 = Math.cos(a1) * rInner;
+                const y4 = Math.sin(a1) * rInner;
+                const large = endDeg - startDeg > 180 ? 1 : 0;
+                return `M ${x1} ${y1} A ${rOuter} ${rOuter} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rInner} ${rInner} 0 ${large} 0 ${x4} ${y4} Z`;
+              }
 
-          {/* Outer bull */}
-          <circle r="120" fill="#27ae60" />
+              const sectors = [];
+              for (let i = 0; i < 20; i++) {
+                const center = -90 + i * sectorAngle; // top is sector 20
+                const start = center - sectorAngle / 2;
+                const end = center + sectorAngle / 2;
+                const isEven = i % 2 === 0;
+                const singleColor = isEven ? '#f3f3e9' : '#141414';
+                const ringColor = isEven ? '#c0392b' : '#27ae60';
 
-          {/* Inner bull */}
-          <circle r="60" fill="#c0392b" />
+                // inner single
+                sectors.push(
+                  <path
+                    key={`s-in-${i}`}
+                    d={sectorPath(outerBullR, tripleInnerR, start, end)}
+                    fill={singleColor}
+                    stroke="none"
+                  />
+                );
 
-          {/* Visual thin separators (not precise but gives feel) */}
-          <circle r="560" fill="none" stroke="#000" strokeWidth="10" />
+                // triple
+                sectors.push(
+                  <path
+                    key={`t-${i}`}
+                    d={sectorPath(tripleInnerR, tripleOuterR, start, end)}
+                    fill={ringColor}
+                    stroke="none"
+                  />
+                );
+
+                // outer single
+                sectors.push(
+                  <path
+                    key={`s-out-${i}`}
+                    d={sectorPath(tripleOuterR, doubleInnerR, start, end)}
+                    fill={singleColor}
+                    stroke="none"
+                  />
+                );
+
+                // double
+                sectors.push(
+                  <path
+                    key={`d-${i}`}
+                    d={sectorPath(doubleInnerR, doubleOuterR, start, end)}
+                    fill={ringColor}
+                    stroke="none"
+                  />
+                );
+
+                // numbers
+                const numPos = polar(center, numbersR);
+                sectors.push(
+                  <text
+                    key={`n-${i}`}
+                    x={numPos.x}
+                    y={numPos.y + 12}
+                    textAnchor="middle"
+                    fontSize="36"
+                    fill="#f7f7f7"
+                    transform={`rotate(${center} ${numPos.x} ${numPos.y})`}
+                    className="sector-number"
+                  >
+                    {SECTOR_ORDER[i]}
+                  </text>
+                );
+              }
+
+              return (
+                <g key="sectors">
+                  {sectors}
+
+                  {/* Bulls */}
+                  <circle r={outerBullR} fill="#27ae60" />
+                  <circle r={innerBullR} fill="#c0392b" />
+
+                  {/* Outer rim stroke */}
+                  <circle r="498" fill="none" stroke="#2c2c2c" strokeWidth="4" />
+                </g>
+              );
+            })()
+          }
 
           {/* Markers */}
           {markers.map((m) => (
-            <g key={m.id} transform={`translate(${(m.x - 50) * 10}, ${(m.y - 50) * 10})`}>
-              <circle r="10" fill="white" />
-              <text x="14" y="6" fontSize="40" fill={m.color}>
+            <g key={m.id} transform={`translate(${m.x}, ${m.y})`}>
+              <circle r="12" fill="#fff" stroke="#000" strokeWidth="2" />
+              <text x="18" y="8" fontSize="40" fill={m.color}>
                 {m.shorthand}
               </text>
             </g>
