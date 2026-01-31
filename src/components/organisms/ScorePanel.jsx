@@ -33,7 +33,7 @@ function TurnCard({ turn, player, remaining, isActive = false }) {
 }
 
 export default function ScorePanel() {
-  const { players, currentPlayerIndex, currentTurn, turns, undo, redo, clear, getPlayerScoreRemaining } = useGame();
+  const { players, currentPlayerIndex, currentTurn, turns, undo, getPlayerScoreRemaining } = useGame();
   const { winner, continueAfterWin, resetGame } = useGame();
 
 
@@ -57,8 +57,6 @@ export default function ScorePanel() {
         <h2>Dart Scorer</h2>
         <div className="controls">
           <Button onClick={undo} title="Undo">Undo</Button>
-          <Button onClick={redo} title="Redo">Redo</Button>
-          <Button onClick={clear} title="Clear">Clear</Button>
         </div>
       </div>
 
