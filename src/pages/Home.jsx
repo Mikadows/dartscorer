@@ -7,16 +7,29 @@ export default function Home({ onStart }){
   const [target, setTarget] = useState(501)
   const [customTarget, setCustomTarget] = useState('')
   const [name, setName] = useState('')
+  const [existing, setExisting] = useState([])
   const [roster, setRoster] = useState([])
   const [error, setError] = useState('')
 
   function addPlayer(){
     const trimmed = name.trim()
     if(!trimmed){ setError('Name cannot be empty'); return }
-    if(roster.some(r => r.name.toLowerCase() === trimmed.toLowerCase())){ setError('Duplicate name'); return }
-    setRoster(r => [...r, { name: trimmed }])
+    if(existing.some(r => r.name.toLowerCase() === trimmed.toLowerCase())){ setError('Duplicate name'); return }
+    const newP = { name: trimmed }
+    setExisting(e => [...e, newP])
     setName('')
     setError('')
+  }
+
+  function addToRoster(idx){
+    const p = existing[idx]
+    if(roster.some(r=>r.name.toLowerCase()===p.name.toLowerCase())){ setError('Already in roster'); return }
+    setRoster(r => [...r, p])
+    setError('')
+  }
+
+  function removeExisting(idx){
+    setExisting(e=>e.filter((_,i)=>i!==idx))
   }
 
   function removePlayer(idx){
@@ -53,30 +66,44 @@ export default function Home({ onStart }){
           </div>
         </section>
 
-        <section className="section">
-          <label className="label">Add player</label>
-          <div className="add-row">
-            <input value={name} onChange={e=>setName(e.target.value)} placeholder="Player name" onKeyDown={e=>{ if(e.key==='Enter') addPlayer() }} />
-            <button className="ds-btn" onClick={addPlayer}>Add</button>
-          </div>
-        </section>
-
-        <section className="section">
-          <label className="label">Roster</label>
-          <div className="roster">
-            {roster.length===0 && <div className="empty">No players added</div>}
-            {roster.map((p,idx)=> (
-              <div className="roster-item" key={idx}>
-                <div className="roster-name">{p.name}</div>
-                <div className="roster-actions">
-                  <button onClick={()=>moveUp(idx)} disabled={idx===0} aria-label="Move up">↑</button>
-                  <button onClick={()=>moveDown(idx)} disabled={idx===roster.length-1} aria-label="Move down">↓</button>
-                  <button onClick={()=>removePlayer(idx)} aria-label="Remove">✕</button>
+        <div className="split">
+          <section className="section pool">
+            <label className="label">Existing players (pool)</label>
+            <div className="add-row">
+              <input value={name} onChange={e=>setName(e.target.value)} placeholder="Player name" onKeyDown={e=>{ if(e.key==='Enter') addPlayer() }} />
+              <button className="ds-btn" onClick={addPlayer}>Add</button>
+            </div>
+            <div className="pool-list">
+              {existing.length===0 && <div className="empty">No available players</div>}
+              {existing.map((p,idx)=> (
+                <div className="pool-item" key={idx}>
+                  <div className="pool-name">{p.name}</div>
+                  <div className="pool-actions">
+                      <button className="action-btn" onClick={()=>addToRoster(idx)} aria-label="Add to roster" title="Add to roster">＋</button>
+                      <button className="action-btn danger" onClick={()=>removeExisting(idx)} aria-label="Remove" title="Remove">✕</button>
+                    </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+
+          <section className="section roster-panel">
+            <label className="label">Roster (next game)</label>
+            <div className="roster">
+              {roster.length===0 && <div className="empty">No players added</div>}
+              {roster.map((p,idx)=> (
+                <div className="roster-item" key={idx}>
+                  <div className="roster-name">{p.name}</div>
+                  <div className="roster-actions">
+                    <button className="action-btn" onClick={()=>moveUp(idx)} disabled={idx===0} aria-label="Move up" title="Move up">↑</button>
+                    <button className="action-btn" onClick={()=>moveDown(idx)} disabled={idx===roster.length-1} aria-label="Move down" title="Move down">↓</button>
+                    <button className="action-btn danger" onClick={()=>removePlayer(idx)} aria-label="Remove" title="Remove">✕</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
 
         {error && <div className="error">{error}</div>}
 
