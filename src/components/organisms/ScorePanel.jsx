@@ -7,7 +7,7 @@ function TurnCard({ turn, player, remaining, isActive = false }) {
   const slots = Array.from({ length: 3 }).map((_, i) => turn && turn.throws[i] ? turn.throws[i].shorthand : '');
   const subtotal = turn ? turn.throws.reduce((s, t) => s + (t.score || 0), 0) : 0;
   return (
-    <div className={`turn-card ${isActive ? 'active' : ''}`}>
+    <div className={`turn-card ${isActive ? 'active' : ''} ${turn && turn.win ? 'win' : ''}`}>
       <div className="turn-top">
         <div className="player-info">
           <div className="avatar">{player.name[0]}</div>
@@ -33,8 +33,7 @@ function TurnCard({ turn, player, remaining, isActive = false }) {
 }
 
 export default function ScorePanel() {
-  const { players, currentPlayerIndex, currentTurn, turns, undo, getPlayerScoreRemaining } = useGame();
-  const { winner, continueAfterWin, resetGame } = useGame();
+  const { players, currentPlayerIndex, currentTurn, turns, undo, getPlayerScoreRemaining, resetGame, gameOver, closeGameOver } = useGame();
 
 
   const activePlayer = players[currentPlayerIndex];
@@ -42,13 +41,13 @@ export default function ScorePanel() {
   return (
     <aside className="score-panel">
       
-      {winner && (
+      {/* Game over modal when no active players remain */}
+      {gameOver && (
         <div className="winner-modal" role="dialog" aria-modal="true">
-          <div className="winner-card">
-            <div className="winner-title">Player {players.find((p) => p.id === winner.playerId)?.name} won!</div>
+          <div className="winner-card game-over-card">
+            <div className="winner-title">Game over — no active players remain</div>
             <div className="winner-actions">
-              <Button onClick={continueAfterWin} title="Continue">Continue</Button>
-              <Button onClick={resetGame} title="New Game">New Game</Button>
+              <Button onClick={() => { resetGame(); }} title="Restart">Restart</Button>
             </div>
           </div>
         </div>

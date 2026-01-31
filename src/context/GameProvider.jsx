@@ -8,16 +8,17 @@ export function useGame() {
 
 // Simple turn model: each turn holds up to 3 throws. Players rotate.
 export function GameProvider({ children }) {
-  const [players] = useState([
-    { id: 'p1', name: 'Gwen', startingScore: 501 },
-    { id: 'p2', name: 'LA', startingScore: 501 },
+  const [players, setPlayers] = useState([
+    { id: 'p1', name: 'Gwen', startingScore: 501, inGame: true },
+    { id: 'p2', name: 'LA', startingScore: 501, inGame: true },
   ]);
 
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [currentTurn, setCurrentTurn] = useState(null); // { id, playerId, throws: [] }
   const [turns, setTurns] = useState([]); // finalized turns
-  const [winner, setWinner] = useState(null); // { playerId }
+  // no global winner; players can be eliminated (inGame=false)
   const [undone, setUndone] = useState([]);
+  const [gameOver, setGameOver] = useState(false);
 
   const startNewTurnForPlayer = useCallback((playerId) => {
     const t = { id: Date.now().toString(), playerId, throws: [] };
@@ -25,11 +26,22 @@ export function GameProvider({ children }) {
     return t;
   }, []);
 
+  const getNextActiveIndexFrom = useCallback((startIndex, playersArr) => {
+    const len = playersArr.length;
+    if (len === 0) return 0;
+    for (let offset = 1; offset <= len; offset++) {
+      const idx = (startIndex + offset) % len;
+      if (playersArr[idx].inGame) return idx;
+    }
+    // fallback to startIndex if no active players
+    return startIndex;
+  }, []);
+
   const finalizeCurrentTurn = useCallback((turn) => {
     setTurns((prev) => [turn, ...prev]);
     setCurrentTurn(null);
-    setCurrentPlayerIndex((i) => (i + 1) % players.length);
-  }, [players.length]);
+    setCurrentPlayerIndex((i) => getNextActiveIndexFrom(i, players));
+  }, [getNextActiveIndexFrom, players]);
 
   const addThrow = useCallback((hit) => {
     setUndone([]);
@@ -50,9 +62,21 @@ export function GameProvider({ children }) {
       const currentUsed = updatedTurn.throws.reduce((s, h) => s + (h.score || 0), 0);
       const remaining = (player ? player.startingScore : 0) - used - currentUsed;
 
-      // If the player reached exactly 0, they win
+      // If the player reached exactly 0, mark player out of the game and mark this turn as the winning turn
       if (remaining === 0) {
-        setWinner({ playerId });
+        updatedTurn.win = true;
+        updatedTurn.remainingAfter = 0;
+        // compute new players array with this player eliminated
+        const newPlayers = players.map((p) => (p.id === playerId ? { ...p, inGame: false } : p));
+        setPlayers(newPlayers);
+        // finalize this winning turn and advance to next active player
+        setTurns((prev) => [updatedTurn, ...prev]);
+        const nextIdx = getNextActiveIndexFrom(players.findIndex((p) => p.id === playerId), newPlayers);
+        setCurrentPlayerIndex(nextIdx);
+        // if there are no active players left, mark game over
+        const anyActive = newPlayers.some((p) => p.inGame);
+        if (!anyActive) setGameOver(true);
+        return null;
       }
 
       // If player busts (remaining < 0) -> finalize turn as bust and advance
@@ -60,7 +84,7 @@ export function GameProvider({ children }) {
         updatedTurn.bust = true;
         updatedTurn.remainingAfter = remainingBeforeTurn; // no score change on bust
         setTurns((prev) => [updatedTurn, ...prev]);
-        setCurrentPlayerIndex((i) => (i + 1) % players.length);
+        setCurrentPlayerIndex((i) => getNextActiveIndexFrom(i, players));
         return null;
       }
 
@@ -70,7 +94,7 @@ export function GameProvider({ children }) {
         const subtotal = updatedTurn.throws.reduce((s, h) => s + (h.score || 0), 0);
         updatedTurn.remainingAfter = remainingBeforeTurn - subtotal;
         setTurns((prev) => [updatedTurn, ...prev]);
-        setCurrentPlayerIndex((i) => (i + 1) % players.length);
+        setCurrentPlayerIndex((i) => getNextActiveIndexFrom(i, players));
         return null;
       }
 
@@ -112,12 +136,6 @@ export function GameProvider({ children }) {
     setTurns([]);
     setUndone([]);
     setCurrentPlayerIndex(0);
-    setWinner(null);
-  }, []);
-
-  const continueAfterWin = useCallback(() => {
-    // simply clear winner flag so game can continue (no state changes)
-    setWinner(null);
   }, []);
 
   const resetGame = useCallback(() => {
@@ -126,7 +144,13 @@ export function GameProvider({ children }) {
     setTurns([]);
     setUndone([]);
     setCurrentPlayerIndex(0);
-    setWinner(null);
+    // reset players inGame state
+    setPlayers((prev) => prev.map((p) => ({ ...p, inGame: true })));
+    setGameOver(false);
+  }, []);
+
+  const closeGameOver = useCallback(() => {
+    setGameOver(false);
   }, []);
 
   const getPlayerScoreRemaining = useCallback(
@@ -149,13 +173,13 @@ export function GameProvider({ children }) {
     currentTurn,
     turns,
     undone,
-    winner,
     addThrow,
     undo,
     redo,
     clear,
-    continueAfterWin,
     resetGame,
+    gameOver,
+    closeGameOver,
     getPlayerScoreRemaining,
   };
 
