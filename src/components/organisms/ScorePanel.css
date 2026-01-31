@@ -20,9 +20,16 @@
 .turn-subtotal{flex:0 0 72px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:56px}
 .subtotal-label{font-size:0.7rem;color:#bbb}
 .subtotal-value{background:#2b2b2b;padding:6px 10px;border-radius:6px;font-weight:700}
+.turn-subtotal.bust .subtotal-value{background:#3b1f1f;color:#f6c3c3}
 .slot{flex:1 1 0;padding:0.5rem 0;border-radius:6px;background:#121212;text-align:center;min-height:56px;display:flex;align-items:center;justify-content:center;font-size:1rem;min-width:0}
 .slot.filled{background:#262626}
 .empty{color:#888}
+
+/* Winner modal */
+.winner-modal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.6));z-index:40}
+.winner-card{background:#121212;border:1px solid rgba(255,255,255,0.04);padding:1rem;border-radius:8px;min-width:260px}
+.winner-title{font-weight:800;margin-bottom:0.75rem}
+.winner-actions{display:flex;gap:0.5rem;justify-content:flex-end}
 
 /* Responsive: stack slots and subtotal on narrow panels to avoid horizontal scrolling */
 @media (max-width:420px){

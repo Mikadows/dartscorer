@@ -16,6 +16,7 @@ export function GameProvider({ children }) {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [currentTurn, setCurrentTurn] = useState(null); // { id, playerId, throws: [] }
   const [turns, setTurns] = useState([]); // finalized turns
+  const [winner, setWinner] = useState(null); // { playerId }
   const [undone, setUndone] = useState([]);
 
   const startNewTurnForPlayer = useCallback((playerId) => {
@@ -32,14 +33,42 @@ export function GameProvider({ children }) {
 
   const addThrow = useCallback((hit) => {
     setUndone([]);
+    // Synchronous calculation: determine which player receives the hit
     setCurrentTurn((turn) => {
       const playerId = turn ? turn.playerId : players[currentPlayerIndex].id;
       const updatedTurn = turn ? { ...turn } : { id: Date.now().toString(), playerId, throws: [] };
-      updatedTurn.throws = [...updatedTurn.throws, { ...hit, id: Date.now() }];
+      const newThrow = { ...hit, id: Date.now() };
+      updatedTurn.throws = [...updatedTurn.throws, newThrow];
 
-      // Auto-finalize on 3 throws
+      // compute remaining score for player after this throw
+      const player = players.find((p) => p.id === playerId);
+      const used = turns
+        .filter((t) => t.playerId === playerId && !t.bust)
+        .flatMap((t) => t.throws)
+        .reduce((s, h) => s + (h.score || 0), 0);
+      const remainingBeforeTurn = (player ? player.startingScore : 0) - used;
+      const currentUsed = updatedTurn.throws.reduce((s, h) => s + (h.score || 0), 0);
+      const remaining = (player ? player.startingScore : 0) - used - currentUsed;
+
+      // If the player reached exactly 0, they win
+      if (remaining === 0) {
+        setWinner({ playerId });
+      }
+
+      // If player busts (remaining < 0) -> finalize turn as bust and advance
+      if (remaining < 0) {
+        updatedTurn.bust = true;
+        updatedTurn.remainingAfter = remainingBeforeTurn; // no score change on bust
+        setTurns((prev) => [updatedTurn, ...prev]);
+        setCurrentPlayerIndex((i) => (i + 1) % players.length);
+        return null;
+      }
+
+      // Auto-finalize on 3 throws (normal)
       if (updatedTurn.throws.length >= 3) {
-        // push to turns and advance player
+        // finalize normal turn
+        const subtotal = updatedTurn.throws.reduce((s, h) => s + (h.score || 0), 0);
+        updatedTurn.remainingAfter = remainingBeforeTurn - subtotal;
         setTurns((prev) => [updatedTurn, ...prev]);
         setCurrentPlayerIndex((i) => (i + 1) % players.length);
         return null;
@@ -47,7 +76,7 @@ export function GameProvider({ children }) {
 
       return updatedTurn;
     });
-  }, [currentPlayerIndex, players]);
+  }, [currentPlayerIndex, players, turns]);
 
   const undo = useCallback(() => {
     // If there's a currentTurn with throws, pop last
@@ -83,6 +112,21 @@ export function GameProvider({ children }) {
     setTurns([]);
     setUndone([]);
     setCurrentPlayerIndex(0);
+    setWinner(null);
+  }, []);
+
+  const continueAfterWin = useCallback(() => {
+    // simply clear winner flag so game can continue (no state changes)
+    setWinner(null);
+  }, []);
+
+  const resetGame = useCallback(() => {
+    // reset all state to initial
+    setCurrentTurn(null);
+    setTurns([]);
+    setUndone([]);
+    setCurrentPlayerIndex(0);
+    setWinner(null);
   }, []);
 
   const getPlayerScoreRemaining = useCallback(
@@ -90,7 +134,7 @@ export function GameProvider({ children }) {
       const player = players.find((p) => p.id === playerId);
       if (!player) return 0;
       const used = turns
-        .filter((t) => t.playerId === playerId)
+        .filter((t) => t.playerId === playerId && !t.bust)
         .flatMap((t) => t.throws)
         .reduce((s, h) => s + (h.score || 0), 0);
       const currentUsed = currentTurn && currentTurn.playerId === playerId ? currentTurn.throws.reduce((s, h) => s + (h.score || 0), 0) : 0;
@@ -105,10 +149,13 @@ export function GameProvider({ children }) {
     currentTurn,
     turns,
     undone,
+    winner,
     addThrow,
     undo,
     redo,
     clear,
+    continueAfterWin,
+    resetGame,
     getPlayerScoreRemaining,
   };
 

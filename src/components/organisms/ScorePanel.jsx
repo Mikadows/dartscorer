@@ -23,9 +23,9 @@ function TurnCard({ turn, player, remaining }) {
           ))}
         </div>
 
-        <div className="turn-subtotal">
+        <div className={`turn-subtotal ${turn && turn.bust ? 'bust' : ''}`}>
           <div className="subtotal-label">Turn</div>
-          <div className="subtotal-value">{subtotal}</div>
+          <div className="subtotal-value">{turn && turn.bust ? 'BUST' : subtotal}</div>
         </div>
       </div>
     </div>
@@ -34,11 +34,23 @@ function TurnCard({ turn, player, remaining }) {
 
 export default function ScorePanel() {
   const { players, currentPlayerIndex, currentTurn, turns, undo, redo, clear, getPlayerScoreRemaining } = useGame();
+  const { winner, continueAfterWin, resetGame } = useGame();
 
   const activePlayer = players[currentPlayerIndex];
 
   return (
     <aside className="score-panel">
+      {winner && (
+        <div className="winner-modal" role="dialog" aria-modal="true">
+          <div className="winner-card">
+            <div className="winner-title">Player {players.find((p) => p.id === winner.playerId)?.name} won!</div>
+            <div className="winner-actions">
+              <Button onClick={continueAfterWin} title="Continue">Continue</Button>
+              <Button onClick={resetGame} title="New Game">New Game</Button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="score-header">
         <h2>Dart Scorer</h2>
         <div className="controls">
@@ -60,7 +72,8 @@ export default function ScorePanel() {
         ) : (
           turns.map((t) => {
             const p = players.find((pl) => pl.id === t.playerId);
-            return <TurnCard key={t.id} turn={t} player={p} remaining={getPlayerScoreRemaining(p.id)} />;
+            const remainingAfter = t.remainingAfter !== undefined ? t.remainingAfter : getPlayerScoreRemaining(p.id);
+            return <TurnCard key={t.id} turn={t} player={p} remaining={remainingAfter} />;
           })
         )}
       </div>
