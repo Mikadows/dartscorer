@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useGame } from '../context/GameProvider'
 import './Home.css'
 
@@ -7,7 +7,14 @@ export default function Home({ onStart }){
   const [target, setTarget] = useState(501)
   const [customTarget, setCustomTarget] = useState('')
   const [name, setName] = useState('')
-  const [existing, setExisting] = useState([])
+  const [existing, setExisting] = useState(() => {
+    try {
+      const raw = localStorage.getItem('ds_players_pool')
+      return raw ? JSON.parse(raw) : []
+    } catch (e) {
+      return []
+    }
+  })
   const [roster, setRoster] = useState([])
   const [error, setError] = useState('')
 
@@ -29,8 +36,16 @@ export default function Home({ onStart }){
   }
 
   function removeExisting(idx){
-    setExisting(e=>e.filter((_,i)=>i!==idx))
+    setExisting(e=>{
+      const next = e.filter((_,i)=>i!==idx)
+      try{ localStorage.setItem('ds_players_pool', JSON.stringify(next)) }catch(_){}
+      return next
+    })
   }
+
+  useEffect(()=>{
+    try{ localStorage.setItem('ds_players_pool', JSON.stringify(existing)) }catch(e){}
+  },[existing])
 
   function removePlayer(idx){
     setRoster(r => r.filter((_,i)=>i!==idx))
