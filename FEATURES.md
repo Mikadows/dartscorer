@@ -1,188 +1,58 @@
 # Dart Scorer Features
 
-Welcome to the Dart Scorer project! This document outlines the key features and functionalities of this application designed to enhance dart score counting.
+Welcome to the Dart Scorer project! This document outlines the key features and functionality of the application designed to streamline dart score entry.
 
 ## Key Features
 
-### Entrée des scores — cible interactive (mise à jour)
+### Score Entry — Interactive Target
 
-Décisions fonctionnelles confirmées
+- Target: an exact reproduction of a real dartboard (preserving the orientation and the position of the 20 segment).
+- Input control: each area of the board is treated as a strict button — precise assignment to rings and sectors using radius and angle thresholds.
+- Available actions: a visible secondary control — an `Undo` button to cancel throws, with an infinite undo history (multi-level undo across the whole game).
 
-* Cible: reproduction exacte d'une cible de fléchettes réelle (orientation et position du 20 respectées).
-* Contrôle d'entrée: chaque zone de la cible est traitée comme un bouton strict — assignation stricte aux anneaux et secteurs via seuils de rayon et angles (tolérance par défaut = 0).
-* Actions disponibles: un contrôle secondaire visible - bouton `Undo` pour annuler les lancers, **avec un historique d'annulation infini** (undo multi-niveaux sur l'ensemble de la partie).
-* Portée de l'itération: composant local unique (pas de multi-joueurs ni réseau pour cette itération). Focus sur la saisie via la cible.
+#### UI / UX — General Appearance
+- The interface must faithfully reproduce the visual hierarchy and layout shown in the reference mockup (`asset/img.png`).
+- Dominant dark theme: overall very dark background (black/anthracite gray) with high contrast for readability.
+- No bitmap images for the target: 100% vector rendering.
+- The target must always be a perfect circle (1:1 aspect ratio), dynamically sized to the available space.
+- The target should be positioned in the right 3/4 of the screen in landscape mode, and in the bottom 3/4 in portrait mode.
+- Visual composition faithful to a real dartboard:
+    * Dark outer ring with numbers 1–20 in white, positioned radially.
+    * Single-score sectors alternating dark red / off-white.
+    * Thin triple and double rings, alternating bright red / bright green.
+    * Outer bull green, bullseye red.
+- The relative proportions of the rings should follow real-board standards (double/triple rings noticeably thinner than single-score areas).
 
----
+### Functional Requirements — Score Display
 
-## UI / UX (cible d'implémentation Jetpack Compose)
+- Layout: reserve the left 1/4 (25%) of the available screen width for the score display area; the interactive target occupies the remaining right 3/4. This layout must adapt to orientation while preserving relative proportions (left column remains ~25% in landscape; in portrait the score area stacks above/beside as in the mockup if space requires).
+- Visual design: the score display must match the attached reference (see image) in composition and visual weight: stacked player score cards, dark theme, high-contrast typography, and compact dart-result tiles (e.g., `T20`, `20`, `D10`). Keep styling consistent with the target mockup in `asset/img.png`.
+- Card model: each completed player turn (up to 3 darts) is represented by one independent score card. A card contains:
+    * **Player name** and avatar/icon.
+    * **Remaining score** (big and prominent).
+    * **Three dart slots** showing the hits for that turn (empty if not thrown yet). Each slot shows shorthand (e.g., `T20`, `20`, `B`), color-coded to match the board rings.
+    * **Turn subtotal** and optional small notes (e.g., checkout achieved).
+    * Timestamp or turn index (optional for history).
+- Turn lifecycle and rules:
+    * A player's turn lasts for up to three darts. After the third dart is recorded the system automatically finalizes that card and immediately switches control to the next player in the rotation.
+    * While a turn is in progress the active player's current card is editable (new darts appended into the three slots). Finalization occurs automatically on the 3rd dart or when the player finishes/achieves a checkout.
+    * Each player's turns are independent; history for each player appears as separate cards in the global sequence (interleaved by player order).
+    * Undo/redo: existing global infinite undo applies — undoing a throw removes it from the corresponding turn card (and may reopen a finalized card if the last action was the finalizing 3rd dart).
+- Scrolling and history:
+    * The score cards list supports infinite history: older cards must be loaded on demand (infinite scroll / pagination) and the list must be performant (use virtualization for large histories).
+    * Card order: newest cards appear at the top of the list by default.
+    * Automatic scrolling: when a new card is added or the active player's current card updates, the score list automatically scrolls to keep the active/latest card in view. This auto-scroll must be smooth and not interrupt any user gesture if the user is actively scrolling (i.e., only auto-scroll when the list is idle or when the user has not scrolled away).
+    * Auto-scroll toggle: provide a user-accessible toggle (settings or toolbar) to enable/disable automatic scrolling. The toggle must be enabled by default.
+    * Provide a small affordance/button to jump to latest if the user is viewing older history.
+- Interaction and accessibility:
+    * Tapping a card expands it to show per-dart details and allows correction (subject to undo rules).
+    * Long-press or overflow menu on a card exposes actions: `Edit`, `Delete Turn`, `Copy Turn`, `Pin`.
+    * Ensure adequate color contrast and screen-reader labels for all score elements.
+- Edge cases & acceptance criteria (testable):
+    1. The score display occupies 25% of horizontal space next to the target in normal landscape layout.  
+    2. After exactly three dart inputs for a player, the app finalizes the turn and switches the active player automatically.  
+    3. Each finalized turn appears as its own card; multiple turns from the same player appear as separate cards in chronological order.  
+    4. The score list supports infinite scrolling and loads older turns on demand without blocking the UI.  
+    5. When a new turn is created or updated, the list scrolls to show that card (unless the user is actively viewing older history).  
+    6. The app exposes an auto-scroll toggle; it is enabled by default and can be turned off by the user.
 
-### Apparence générale
-
-* L'interface **doit reproduire fidèlement la hiérarchie visuelle** et la disposition observées dans le mockup de référence (`asset/img.png`).
-* Thème sombre dominant : fond global très sombre (noir/gris anthracite), contrastes élevés pour garantir la lisibilité.
-* Aucune image bitmap pour la cible : **rendu 100% vectoriel via Canvas Compose**.
-
-### AppBar (en-tête)
-
-* Positionnée en haut de l'écran, hauteur standard (~56dp).
-* Fond gris très foncé.
-* Contenu (de gauche à droite):
-
-    * Icône retour (flèche gauche).
-    * Titre de l'écran : `Darts`.
-    * Groupe d'icônes d'actions alignées à droite : Undo / reset, statistiques, micro (entrée vocale), menu plus (⋮).
-* Icônes blanches, taille 20–24dp, espacement homogène.
-
-### Cible de fléchettes
-
-* Élément central de l'écran.
-* Toujours affichée comme un **cercle parfait (ratio 1:1)**, centrée dans sa zone.
-* Dimensionnée dynamiquement via contraintes (`BoxWithConstraints`).
-* Composition visuelle fidèle à une cible réelle :
-
-    * Anneau extérieur sombre avec numéros 1–20 en blanc, positionnés radialement.
-    * Secteurs simples alternés rouge foncé / blanc cassé.
-    * Anneaux triple et double fins, alternance rouge vif / vert vif.
-    * Bull extérieur vert, bullseye rouge.
-* Les proportions relatives des anneaux doivent respecter les standards d'une vraie cible (double/triple sensiblement plus fins que les zones simples).
-
-### Panneau scores / informations joueur
-
-* Zone dédiée à l'affichage des informations textuelles.
-* Fond uni sombre, distinct de la cible.
-* Hiérarchie typographique stricte :
-
-    * Score principal très visible (plus grand, bold).
-    * Nom du joueur et informations secondaires plus petites.
-
-#### Ligne joueur
-
-* Icône trophée à gauche.
-* Nom du joueur (texte blanc, taille moyenne).
-* Score total aligné à droite, grande taille.
-* Badge secondaire (fond jaune) affichant une information clé (ex: nombre de fléchettes restantes).
-
-#### Détails des lancers
-
-* Affichés sous chaque joueur.
-* Sous forme de chips rectangulaires (coins arrondis) : `T20`, `20`, `D10`, etc.
-* Fond gris foncé, texte blanc.
-* Total de la visite affiché à droite en texte gris clair.
-
-### Interaction et feedback
-
-* Chaque tap sur la cible correspond **strictement** à une zone valide (aucune approximation par proximité).
-* Feedback immédiat à l'impact :
-
-    * Animation légère.
-    * Son discret.
-    * Affichage bref de la valeur détectée (ex: `+60`, `Triple 20`).
-    * Haptique optionnelle.
-
-### Accessibilité
-
-* Chaque zone logique (secteur/anneau) doit exposer un label accessible.
-* Navigation clavier / tabulation supportée.
-
----
-
-## Mise en page de l'écran de jeu
-
-### Support des orientations (obligatoire)
-
-* Portrait et paysage **obligatoires**, avec layouts distincts.
-
-### Mode paysage
-
-* Écran divisé verticalement en deux zones:
-
-    * **Panneau gauche (25%)** : scores, déroulé, infos joueur.
-    * **Panneau droit (75%)** : cible interactive.
-* Le panneau gauche peut défiler verticalement si nécessaire.
-* La cible s'adapte à la hauteur disponible tout en conservant un cercle parfait.
-
-### Mode portrait
-
-* Écran divisé horizontalement:
-
-    * **Panneau haut (25%)** : scores et résumé.
-    * **Panneau bas (75%)** : cible interactive.
-* Le panneau haut devient scrollable si son contenu dépasse l'espace alloué.
-* La cible occupe visuellement les 3/4 inférieurs de l'écran.
-
----
-
-## Arbre de composants Jetpack Compose
-
-```
-GameScreen
-│
-├── DartAppBar
-│
-├── OrientationAwareLayout
-│   ├── ScoresPanel
-│   │   ├── PlayerScoreHeader
-│   │   ├── ThrowsRow
-│   │   │   └── ThrowChip
-│   │   └── VisitTotal
-│   │
-│   └── DartboardContainer
-│       └── TargetInput
-│           └── DartboardCanvas
-│
-└── FeedbackOverlay
-    ├── HitValueToast
-    └── AnimationLayer
-```
-
-* `GameScreen` : point d'entrée UI de l'écran de jeu.
-* `OrientationAwareLayout` : choisit la disposition portrait/paysage.
-* `ScoresPanel` : panneau texte (scrollable si nécessaire).
-* `TargetInput` : composant réutilisable encapsulant Canvas + gestion des taps.
-* `DartboardCanvas` : rendu vectoriel pur de la cible.
-* `FeedbackOverlay` : couche visuelle temporaire (animations, valeur du hit).
-
----
-
-## Détection du hit (règles strictes)
-
-* Calcul: convertir `(x,y)` en coordonnées polaires `(r, θ)` autour du centre.
-* Anneaux: seuils de rayon définis strictement pour Bullseye, Bull (25), Triple, Double, Single inner/outer.
-* Secteurs: 20 secteurs de 18°; déterminer l'indice via `floor((normalizeAngle(θ) + offset) / 18) mod 20`.
-* Cas limites: si `r` exactement sur une frontière, appliquer règle déterministe documentée; aucune approximation.
-* Validation: empêcher entrées invalides (ex: triple sur bull).
-
----
-
-## API interne et événements
-
-* Événements: `onHit(scoreData)`, `onUndo()`.
-* `ScoreData`: `{ sector: Int|null, multiplier: Int, base: Int, total: Int, rawCoords: { x: Int, y: Int }, timestamp: Long }`.
-* Historique complet conservé en mémoire pour permettre un undo infini.
-
----
-
-## Tests d'acceptation
-
-* Taps sur chaque zone retournent la valeur correcte.
-* Frontières respectent la règle déterministe.
-* Undo remonte l'historique sans limite.
-* UI conforme au mockup en portrait et paysage avec proportions 1/4–3/4.
-
----
-
-## Livrables pour cette itération
-
-* Composant UI `TargetInput` réutilisable.
-* Mapping `(x,y) -> ScoreData` avec tests unitaires couvrant les frontières.
-* Gestion d'état avec historique complet et undo multi-niveaux.
-* Tests d'intégration du flux de jeu.
-* Documentation des seuils, offsets et règles de frontières.
-
----
-
-## Notes opérationnelles
-
-* Tolérance configurable mais par défaut = 0.
-* Priorité : rendu vectoriel précis et latence UI < 50 ms.

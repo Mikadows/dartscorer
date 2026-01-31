@@ -42,3 +42,8 @@ You MUST strictly adhere to the following guidelines:
 - When you show me a potential error or miss, start your response with❗️emoji
 - If the scope of the work seems too big, suggest the user to break it down into smaller pieces. Start your message with the ✂️ emoji in that case.
 
+## Development guidelines
+
+- Integrate the React coding guidelines defined in [here](./docs/agents/coding/react-coding-guidelines.md) when working on React code
+- Integrate the git usage directives defined in [here](./docs/agents/coding/git-guidelines.md) when working with git
+- Integrate the development workflow instructions defined in [here](./docs/agents/instructions/development-workflow.instructions.md) when implementing code.
