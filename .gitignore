@@ -14,3 +14,7 @@
 .cxx
 local.properties
 .idea
+node_modules/
+.vscode/
+dist/
+.build/
