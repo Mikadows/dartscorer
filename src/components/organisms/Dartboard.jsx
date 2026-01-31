@@ -1,10 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { getHitFromPoint, SECTOR_ORDER } from '../../utils/geometry';
 import './Dartboard.css';
 
 export default function Dartboard({ onHit }) {
   const svgRef = useRef(null);
-  const [markers, setMarkers] = useState([]);
 
   function handleClick(e) {
     const svg = svgRef.current;
@@ -19,10 +18,11 @@ export default function Dartboard({ onHit }) {
     const R = Math.min(rect.width, rect.height) / 2;
 
     const hit = getHitFromPoint(dx, dy, R);
-    // store marker in SVG coordinates (centered at 500,500)
-    const vx = 500 + (dx / R) * 500;
-    const vy = 500 + (dy / R) * 500;
-    setMarkers((m) => [...m, { x: vx, y: vy, id: Date.now(), shorthand: hit.shorthand, color: hit.color }]);
+    // For now: log the hit result; markers removed per request
+    // Hit contains: ringType, sectorValue, score, shorthand, color
+    // Use console.log so dev tools can inspect
+    // eslint-disable-next-line no-console
+    console.log('Dart hit:', hit);
     if (onHit) onHit(hit);
   }
   return (
@@ -52,8 +52,10 @@ export default function Dartboard({ onHit }) {
               const R = 500;
               const innerBullR = 0.06 * R; // 30
               const outerBullR = 0.12 * R; // 60
-              const tripleInnerR = 0.52 * R; // 260
-              const tripleOuterR = 0.56 * R; // 280
+              // Increase triple ring thickness by 20% while keeping center around 0.54*R
+              // New inner/outer: 0.516*R .. 0.564*R
+              const tripleInnerR = 0.516 * R; // 258
+              const tripleOuterR = 0.564 * R; // 282
               const doubleInnerR = 0.92 * R; // 460
               const doubleOuterR = 0.99 * R; // 495
               const numbersR = 480;
@@ -165,15 +167,7 @@ export default function Dartboard({ onHit }) {
             })()
           }
 
-          {/* Markers */}
-          {markers.map((m) => (
-            <g key={m.id} transform={`translate(${m.x}, ${m.y})`}>
-              <circle r="12" fill="#fff" stroke="#000" strokeWidth="2" />
-              <text x="18" y="8" fontSize="40" fill={m.color}>
-                {m.shorthand}
-              </text>
-            </g>
-          ))}
+          {/* Markers intentionally removed — hits are logged to console for now */}
         </g>
       </svg>
     </div>

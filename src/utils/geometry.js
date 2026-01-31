@@ -8,8 +8,12 @@ export function getHitFromPoint(dx, dy, R) {
   // Rings (fractions of R)
   const innerBullR = 0.06 * R;
   const outerBullR = 0.12 * R;
-  const tripleInnerR = 0.52 * R;
-  const tripleOuterR = 0.56 * R;
+  // Increase triple ring thickness by 20% while keeping its center
+  // approximately at the same radius (center ~0.54*R).
+  // Original thickness: 0.56-0.52 = 0.04*R -> new thickness = 0.04*1.2 = 0.048*R
+  // Half-thickness = 0.024*R, center = 0.54*R
+  const tripleInnerR = 0.54 * R - 0.024 * R; // 0.516 * R
+  const tripleOuterR = 0.54 * R + 0.024 * R; // 0.564 * R
   const doubleInnerR = 0.92 * R;
   const doubleOuterR = 0.99 * R;
 
