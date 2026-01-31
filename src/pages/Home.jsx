@@ -68,6 +68,10 @@ export default function Home({ onStart }){
 
   return (
     <div className="home-root">
+      <div className="landing-brand">
+        <div className="brand-title">Dart Scorer</div>
+        <div className="brand-sub">Simple and free dart scorer 🎯</div>
+      </div>
       <div className="home-card">
         <h1>New Game</h1>
 
@@ -125,6 +129,10 @@ export default function Home({ onStart }){
         <div className="actions">
           <button className="ds-btn primary" onClick={onStartClick} disabled={roster.length===0}>Start Game</button>
         </div>
+
+        <footer className="home-footer">
+          <a href="#" target="_blank" rel="noreferrer">GitHub repository</a>
+        </footer>
 
       </div>
     </div>

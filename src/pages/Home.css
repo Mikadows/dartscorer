@@ -1,4 +1,4 @@
-.home-root{height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#040507,#071018)}
+.home-root{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:linear-gradient(180deg,#040507,#071018)}
 .home-card{width:min(920px,96%);background:linear-gradient(180deg,#071422,#061018);padding:1.25rem;border-radius:12px;border:1px solid rgba(255,255,255,0.06);color:#ffffff;display:flex;flex-direction:column;max-height:calc(100vh - 2rem);overflow:hidden}
 .home-card h1{margin:0 0 0.75rem 0;color:#ffffff}
 .section{margin-top:0.75rem}
@@ -21,6 +21,14 @@
 .ds-btn.primary:hover{background:#1f8f48}
 .error{color:#ff6b6b;margin-top:0.5rem}
 .empty{color:#9aa6b2}
+
+/* Branding and footer */
+.landing-brand{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:10px}
+.landing-brand .brand-title{font-size:6rem;line-height:1;color:#ffffff;font-weight:900;text-align:center}
+.landing-brand .brand-sub{font-size:1.25rem;color:#bcd6f0}
+.home-footer{margin-top:1rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.03);display:flex;justify-content:center}
+.home-footer a{color:#9ecbff;text-decoration:none}
+.home-footer a:hover{text-decoration:underline}
 
 .pool-list{margin-top:0.5rem;display:flex;flex-direction:column;gap:0.4rem;overflow:auto;flex:1;min-height:0}
 .pool-item{display:flex;align-items:center;justify-content:space-between;padding:0.45rem;border-radius:8px;background:linear-gradient(180deg,#061018,#041018);border:1px solid rgba(255,255,255,0.04)}
