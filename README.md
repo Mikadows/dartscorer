@@ -1,6 +1,6 @@
-![CI](https://github.com/OWNER/REPO/actions/workflows/deploy.yml/badge.svg?branch=main)
+![CI](https://github.com/Mikadows/dartscorer/actions/workflows/deploy.yml/badge.svg?branch=main)
 
-# Dart Scorer
+# 🎯 Dart Scorer
 
 Dart Scorer is a small single-page React application for entering and tracking darts scores during casual play. It provides an interactive SVG dartboard for score entry, per-player turn history, bust/win handling, player elimination, and a simple home page to manage player profiles and start games.
 
@@ -65,4 +65,4 @@ This project is provided without an explicit license. Add a `LICENSE` file if yo
 
 ---
 
-Replace OWNER/REPO in the CI badge URL at the top of this file with your repository path (for example `yourname/dartscorer`).
+> ⚠ DISCLAIMER : This repo is 100% vide coded with copilot
