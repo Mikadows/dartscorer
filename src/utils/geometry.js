@@ -28,9 +28,12 @@ export function getHitFromPoint(dx, dy, R) {
 
   // Map angle to sector index. We want sector 20 centered at -90deg (top).
   const twoPi = Math.PI * 2;
-  const normalized = (angle + Math.PI / 2 + twoPi) % twoPi; // zero at top
   const sectorAngle = twoPi / 20;
-  const sectorIndex = Math.floor(normalized / sectorAngle) % 20;
+  // Normalize so 0 is at top, range [0, 2PI)
+  const normalized = (angle + Math.PI / 2 + twoPi) % twoPi; // zero at top
+  // Add a half-sector offset so points near the 0-angle boundary
+  // are assigned to the correct sector (avoid wrap-around off-by-one).
+  const sectorIndex = Math.floor((normalized + sectorAngle / 2) / sectorAngle) % 20;
   const sectorValue = SECTOR_ORDER[sectorIndex];
 
   // Shorthand and score
